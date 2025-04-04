@@ -12,6 +12,20 @@ from bot import EmailMonitorBot, main
 class TestEmailMonitorBot(unittest.TestCase):
     
     def setUp(self):
+        # Mock out real connections to external services
+        self.patch_env = patch.dict('os.environ', {
+            'imap_server': 'test_server',
+            'imap_user': 'test_user',
+            'imap_password': 'test_password',
+            'imap_port': '993',
+            'imap_ssl': 'true',
+            'openai_api_key': 'test_api_key',
+            'discord_token': 'test_token',
+            'discord_channel_id': '123456789',
+            'whitelisted_email_addresses': 'test@example.com',
+        })
+        self.patch_env.start()
+
         # Create patches for dependencies
         self.email_handler_patcher = patch('bot.EmailHandler')
         self.discord_notifier_patcher = patch('bot.DiscordNotifier')
@@ -21,9 +35,11 @@ class TestEmailMonitorBot(unittest.TestCase):
                                   IMAP_SERVER='test_server',
                                   IMAP_USER='test_user',
                                   IMAP_PASSWORD='test_password',
+                                  IMAP_SSL=True,
                                   OPENAI_API_KEY='test_api_key',
                                   DISCORD_TOKEN='test_token',
-                                  DISCORD_CHANNEL_ID=123456789)
+                                  DISCORD_CHANNEL_ID=123456789,
+                                  WHITELISTED_EMAIL_ADDRESSES=['test@example.com'])
         
         # Start the patches
         self.mock_email_handler = self.email_handler_patcher.start()
@@ -37,6 +53,16 @@ class TestEmailMonitorBot(unittest.TestCase):
         self.mock_email_handler.return_value = self.mock_handler_instance
         self.mock_discord_notifier.return_value = self.mock_notifier_instance
         
+        # Setup the discord notifier mock for async methods
+        self.mock_notifier_instance.send_email_notification = AsyncMock(return_value=True)
+        self.mock_notifier_instance.start = AsyncMock()
+        self.mock_notifier_instance.close = AsyncMock()
+        
+        # Configure email handler mock
+        self.mock_handler_instance.connect = MagicMock(return_value=True)
+        self.mock_handler_instance.disconnect = MagicMock()
+        self.mock_handler_instance.get_new_emails = MagicMock(return_value=[])
+        
         # Setup event loop for async testing
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
@@ -47,6 +73,7 @@ class TestEmailMonitorBot(unittest.TestCase):
         self.discord_notifier_patcher.stop()
         self.summarize_email_patcher.stop()
         self.config_patcher.stop()
+        self.patch_env.stop()
         
         # Close the event loop
         self.loop.close()
