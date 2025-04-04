@@ -11,12 +11,14 @@ A Discord bot that monitors an email inbox, uses AI to summarize email content, 
 
 ## Requirements
 
-- Python 3.6+
+- Python 3.6+ (or Docker)
 - Discord account and server with admin privileges
 - Email account with IMAP access
 - OpenAI API key
 
 ## Installation
+
+### Option 1: Standard Installation
 
 1. Clone this repository:
 ```bash
@@ -28,6 +30,16 @@ cd 20250404-Irregular-Hack-discord_bot
 ```bash
 pip install -r requirements.txt
 ```
+
+### Option 2: Docker Installation
+
+1. Clone this repository:
+```bash
+git clone https://github.com/irregularchat/20250404-Irregular-Hack-discord_bot
+cd 20250404-Irregular-Hack-discord_bot
+```
+
+2. Make sure Docker and Docker Compose are installed on your system.
 
 ## Configuration
 
@@ -62,10 +74,32 @@ whitelisted_email_addresses=email1@example.com,email2@example.com
 
 ## Usage
 
+### Running Locally
+
 Run the bot with:
 
 ```bash
 python bot.py
+```
+
+### Running with Docker
+
+Start the bot using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+To view logs:
+
+```bash
+docker-compose logs -f
+```
+
+To stop the bot:
+
+```bash
+docker-compose down
 ```
 
 The bot will:
