@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   discord-bot:
+    container_name: discord-bot
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,6 +11,7 @@ services:
       - .env
     volumes:
       - ./:/app
+      - bot-logs:/app/logs
     environment:
       - TZ=UTC
     healthcheck:
@@ -17,4 +19,12 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 5s 
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  bot-logs: 
