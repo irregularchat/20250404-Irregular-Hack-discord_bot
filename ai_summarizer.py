@@ -1,13 +1,14 @@
 import openai
 import logging
 import config
+from openai import OpenAI
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Configure OpenAI API
-openai.api_key = config.OPENAI_API_KEY
+# Initialize OpenAI client
+client = OpenAI(api_key=config.OPENAI_API_KEY)
 
 def summarize_email(email_data):
     """
@@ -29,23 +30,26 @@ def summarize_email(email_data):
         max_body_length = 4000
         truncated_body = body[:max_body_length] + "..." if len(body) > max_body_length else body
         
-        # Create prompt for OpenAI
-        prompt = f"""
-        Please provide a concise summary (3-5 sentences) of the following email:
+        # Create messages for OpenAI Chat API
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant that summarizes emails concisely."},
+            {"role": "user", "content": f"""
+            Please provide a concise summary (3-5 sentences) of the following email:
+            
+            From: {sender}
+            Subject: {subject}
+            
+            Body:
+            {truncated_body}
+            
+            Summary:
+            """}
+        ]
         
-        From: {sender}
-        Subject: {subject}
-        
-        Body:
-        {truncated_body}
-        
-        Summary:
-        """
-        
-        # Call OpenAI API
-        response = openai.Completion.create(
-            model="text-davinci-003",  # You can change this to a different model if needed
-            prompt=prompt,
+        # Call OpenAI API with newer model
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
             max_tokens=150,
             temperature=0.3,
             top_p=1.0,
@@ -54,7 +58,7 @@ def summarize_email(email_data):
         )
         
         # Extract summary from response
-        summary = response.choices[0].text.strip()
+        summary = response.choices[0].message.content.strip()
         
         # Add summary to email data
         email_data['summary'] = summary
