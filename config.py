@@ -25,7 +25,10 @@ CHECK_INTERVAL = int(os.getenv('check_interval', '60'))  # Default to 60 seconds
 
 # Email whitelist
 WHITELISTED_EMAIL_ADDRESSES = os.getenv('whitelisted_email_addresses', '')
-WHITELISTED_EMAIL_ADDRESSES = [email.strip() for email in WHITELISTED_EMAIL_ADDRESSES.split(',') if email.strip()]
+if WHITELISTED_EMAIL_ADDRESSES:
+    WHITELISTED_EMAIL_ADDRESSES = [email.strip() for email in WHITELISTED_EMAIL_ADDRESSES.split(',') if email.strip()]
+else:
+    WHITELISTED_EMAIL_ADDRESSES = []
 
 # Logging configuration
 LOG_DIR = os.getenv('log_dir', 'logs')
