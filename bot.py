@@ -83,6 +83,7 @@ class EmailMonitorBot:
                     # In production mode, send to Discord
                     if not TEST_MODE:
                         await self.discord_bot.send_email_notification(summarized_email)
+                        logger.info(f"Email sent to Discord channel: {config.DISCORD_CHANNEL_ID}")
                     else:
                         logger.info(f"Email from: {email.get('from', 'Unknown')}")
                         logger.info(f"Subject: {email.get('subject', 'No subject')}")
