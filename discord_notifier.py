@@ -51,32 +51,44 @@ class DiscordNotifier(commands.Bot):
             return False
         
         try:
+            # Extract email data
+            subject = email_data.get('subject', 'No Subject')
+            sender = email_data.get('from', 'Unknown')
+            date = email_data.get('date', 'Unknown')
+            summary = email_data.get('summary', '')
+            body = email_data.get('body', '')
+            body_length = len(body)
+            
             # Create an embed for the email
             embed = discord.Embed(
-                title=email_data.get('subject', 'No Subject'),
+                title=f"📧 {subject}",
                 color=discord.Color.blue(),
                 timestamp=discord.utils.utcnow()
             )
             
             # Add email details to embed
-            embed.add_field(name="From", value=email_data.get('from', 'Unknown'), inline=False)
-            embed.add_field(name="Date", value=email_data.get('date', 'Unknown'), inline=False)
+            embed.add_field(name="From", value=sender, inline=True)
+            embed.add_field(name="Date", value=date, inline=True)
+            embed.add_field(name="Email Length", value=f"{body_length} characters", inline=True)
             
-            # Add summary if available
-            if 'summary' in email_data and email_data['summary']:
-                embed.add_field(name="Summary", value=email_data['summary'], inline=False)
+            # Add summary if available - this is the AI-generated content analysis
+            if summary:
+                embed.add_field(name="📝 Content Analysis", value=summary, inline=False)
             
             # Add a snippet of the body
-            body = email_data.get('body', '')
             if body:
                 # Truncate body if it's too long for Discord
-                max_body_length = 1000
-                truncated_body = body[:max_body_length] + "..." if len(body) > max_body_length else body
-                embed.add_field(name="Content Preview", value=truncated_body, inline=False)
+                max_preview_length = 800  # Shorter preview to keep embed compact
+                truncated_body = body[:max_preview_length] + "..." if body_length > max_preview_length else body
+                embed.add_field(name="📄 Content Preview", value=f"```{truncated_body}```", inline=False)
+                
+                # Set footer to indicate content length
+                if body_length > max_preview_length:
+                    embed.set_footer(text=f"Full email: {body_length} characters ({round(body_length/max_preview_length, 1)}x longer than preview)")
             
             # Send the embed to the channel
             await channel.send(embed=embed)
-            logger.info(f"Sent notification for email: {email_data.get('subject', 'No Subject')}")
+            logger.info(f"Sent notification for email: {subject} - {body_length} characters")
             return True
             
         except Exception as e:

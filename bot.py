@@ -16,8 +16,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Test mode flag - set to True to bypass authentication for development
-TEST_MODE = True  # Change this to True for development/testing
+# Enable debug logging if specified
+DEBUG_LOGGING = os.getenv('DEBUG_LOGGING', 'false').lower() == 'true'
+if DEBUG_LOGGING:
+    logging.getLogger().setLevel(logging.DEBUG)
+    logger.debug("Debug logging enabled")
+
+# Test mode flag - set to True for development/testing
+TEST_MODE = False  # Change this to True for development/testing
 
 class EmailMonitorBot:
     """
@@ -76,6 +82,19 @@ class EmailMonitorBot:
             
             for email in emails:
                 try:
+                    # Log email details for debugging
+                    sender = email.get('from', 'Unknown')
+                    subject = email.get('subject', 'No subject')
+                    body = email.get('body', '')
+                    body_length = len(body)
+                    
+                    if DEBUG_LOGGING:
+                        body_preview = body[:100] + "..." if body_length > 100 else body
+                        logger.debug(f"Processing email from: {sender}")
+                        logger.debug(f"Subject: {subject}")
+                        logger.debug(f"Body length: {body_length} characters")
+                        logger.debug(f"Body preview: {body_preview}")
+                    
                     # Process email with the module-level summarize_email function
                     # This is what's expected in tests
                     summarized_email = summarize_email(email)
@@ -84,8 +103,9 @@ class EmailMonitorBot:
                     if not TEST_MODE:
                         await self.discord_bot.send_email_notification(summarized_email)
                     else:
-                        logger.info(f"Email from: {email.get('from', 'Unknown')}")
-                        logger.info(f"Subject: {email.get('subject', 'No subject')}")
+                        logger.info(f"Email from: {sender}")
+                        logger.info(f"Subject: {subject}")
+                        logger.info(f"Body length: {body_length} characters")
                         summary = summarized_email.get('summary', 'No summary available')
                         logger.info(f"Summary: {summary}")
                         

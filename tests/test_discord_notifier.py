@@ -142,16 +142,20 @@ class TestDiscordNotifier(unittest.TestCase):
             mock_channel.send.assert_called_once()
             self.assertTrue(result)
             
-            # Verify embed contents
+            # Verify embed contents - updated for new format
             call_args = mock_channel.send.call_args[1]
             embed = call_args['embed']
-            self.assertEqual(embed.title, 'Test Email')
+            self.assertEqual(embed.title, '📧 Test Email')
             self.assertEqual(embed.fields[0].name, 'From')
             self.assertEqual(embed.fields[0].value, 'sender@example.com')
             self.assertEqual(embed.fields[1].name, 'Date')
             self.assertEqual(embed.fields[1].value, 'Fri, 10 Mar 2023 12:00:00 +0000')
-            self.assertEqual(embed.fields[2].name, 'Summary')
-            self.assertEqual(embed.fields[2].value, 'This is an AI-generated summary.')
+            self.assertEqual(embed.fields[2].name, 'Email Length')
+            self.assertEqual(embed.fields[2].value, '26 characters')
+            self.assertEqual(embed.fields[3].name, '📝 Content Analysis')
+            self.assertEqual(embed.fields[3].value, 'This is an AI-generated summary.')
+            self.assertEqual(embed.fields[4].name, '📄 Content Preview')
+            self.assertTrue('This is a test email body.' in embed.fields[4].value)
         finally:
             # Clean up the event loop
             loop.close()
@@ -228,13 +232,25 @@ class TestDiscordNotifier(unittest.TestCase):
             mock_channel.send.assert_called_once()
             self.assertTrue(result)
             
-            # Verify embed contents and truncation
+            # Verify embed contents and truncation - updated for new format
             call_args = mock_channel.send.call_args[1]
             embed = call_args['embed']
-            content_field = embed.fields[3]  # Content Preview field
-            self.assertEqual(content_field.name, 'Content Preview')
+            
+            # Check email length field
+            self.assertEqual(embed.fields[2].name, 'Email Length')
+            self.assertEqual(embed.fields[2].value, '2000 characters')
+            
+            # Check content analysis field
+            self.assertEqual(embed.fields[3].name, '📝 Content Analysis')
+            
+            # Check content preview field
+            content_field = embed.fields[4]  # Content Preview field is now index 4
+            self.assertEqual(content_field.name, '📄 Content Preview')
             self.assertTrue(len(content_field.value) < 2000)
-            self.assertTrue(content_field.value.endswith('...'))
+            self.assertTrue('```' in content_field.value)  # Check for code block formatting
+            
+            # Check footer for content length indication
+            self.assertTrue(embed.footer.text.startswith('Full email:'))
         finally:
             # Clean up the event loop
             loop.close()

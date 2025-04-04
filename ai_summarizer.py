@@ -46,27 +46,47 @@ class AISummarizer:
                 email_data['summary'] = f"Email from {sender} with subject '{subject}' (no content)."
                 return email_data
             
+            # Log email details before summarization
+            body_preview = body[:100] + "..." if len(body) > 100 else body
+            logger.debug(f"Summarizing email: From={sender}, Subject={subject}, Body preview: {body_preview}")
+            logger.debug(f"Body length: {len(body)} characters")
+            
             # Truncate body if it's too long (OpenAI has token limits)
             max_body_length = 4000
             truncated_body = body[:max_body_length] + "..." if len(body) > max_body_length else body
+            truncated = len(body) > max_body_length
+            if truncated:
+                logger.debug(f"Body was truncated from {len(body)} to {max_body_length} characters")
             
-            # Create messages for OpenAI Chat API
+            # Create improved messages for OpenAI Chat API with emphasis on content analysis
             messages = [
-                {"role": "system", "content": "You are a helpful assistant that summarizes emails concisely."},
+                {"role": "system", "content": """You are an expert email analyst who helps people by creating concise and informative email summaries.
+                Your summaries should:
+                1. Carefully analyze the BODY content of the email - this is the most important part
+                2. Highlight the key points and main message from the email body
+                3. Identify any action items or requests mentioned in the text
+                4. Note any deadlines or important dates mentioned
+                5. Include relevant details from attachments or links if mentioned
+                6. Be clear and professional in tone
+                7. Be 3-5 sentences in length
+                
+                Do not simply restate the subject line - the body content is what matters most.
+                """},
                 {"role": "user", "content": f"""
-                Please provide a concise summary (3-5 sentences) of the following email:
+                Summarize the following email by analyzing its BODY content:
                 
-                From: {sender}
-                Subject: {subject}
+                FROM: {sender}
+                SUBJECT: {subject}
                 
-                Body:
+                BODY:
                 {truncated_body}
                 
-                Summary:
+                Create a clear, concise summary that focuses on the content of the email body, including any key information, action items, and important details.
                 """}
             ]
             
             # Call OpenAI API with newer model
+            logger.debug("Sending request to OpenAI API")
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=messages,
@@ -83,6 +103,8 @@ class AISummarizer:
             # Add summary to email data
             email_data['summary'] = summary
             logger.info(f"Successfully generated summary for email: {subject}")
+            logger.debug(f"Summary length: {len(summary)} characters")
+            logger.debug(f"Summary content: {summary}")
             
             return email_data
             
@@ -92,6 +114,7 @@ class AISummarizer:
             return email_data
         except Exception as e:
             logger.error(f"Error generating summary: {str(e)}")
+            logger.exception("Detailed exception information:")
             email_data['summary'] = f"Email from {sender} about '{subject}' (summary unavailable)."
             return email_data
 
