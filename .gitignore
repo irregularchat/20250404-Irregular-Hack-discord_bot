@@ -140,4 +140,10 @@ cython_debug/
 /tests
 tests/
 env/
->>>>>>> fcab716 (Update .gitignore to include additional environment and test directories)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pywz
