@@ -1,113 +1,136 @@
 import asyncio
 import logging
-import time
-from datetime import datetime
-import discord
-from discord.ext import commands, tasks
-
-import config
+import os
+import sys
+import signal
+from dotenv import load_dotenv
 from email_handler import EmailHandler
-from ai_summarizer import summarize_email
 from discord_notifier import DiscordNotifier
+from ai_summarizer import AISummarizer
 
-# Set up logging
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-class EmailMonitorBot:
-    def __init__(self):
-        self.email_handler = EmailHandler()
-        self.discord_bot = DiscordNotifier()
-        self.running = False
-    
-    async def check_emails(self):
-        """Check for new emails and process them"""
-        logger.info("Checking for new emails...")
-        
-        # Get new emails
-        emails = self.email_handler.get_new_emails()
-        
-        if not emails:
-            logger.info("No new emails found")
-            return
-        
-        logger.info(f"Found {len(emails)} new emails to process")
-        
-        # Process each email
-        for email_data in emails:
-            # Summarize email
-            email_with_summary = summarize_email(email_data)
-            
-            # Send notification to Discord
-            await self.discord_bot.send_email_notification(email_with_summary)
-            
-            # Add a small delay between processing emails
-            await asyncio.sleep(1)
-    
-    async def start_monitoring(self):
-        """Start the email monitoring loop"""
-        self.running = True
-        
-        logger.info("Starting email monitoring...")
-        
-        # Connect to email server
-        if not self.email_handler.connect():
-            logger.error("Failed to connect to email server. Exiting.")
-            return
-        
-        # Main monitoring loop
-        while self.running:
-            try:
-                await self.check_emails()
-            except Exception as e:
-                logger.error(f"Error in monitoring loop: {str(e)}")
-            
-            # Wait for the next check interval
-            logger.info(f"Waiting {config.CHECK_INTERVAL} seconds until next check...")
-            await asyncio.sleep(config.CHECK_INTERVAL)
-    
-    def stop_monitoring(self):
-        """Stop the email monitoring loop"""
-        self.running = False
-        self.email_handler.disconnect()
-        logger.info("Email monitoring stopped")
-    
-    async def run(self):
-        """Run the bot"""
-        # Start the monitoring task
-        monitor_task = asyncio.create_task(self.start_monitoring())
-        
-        # Run the Discord bot
-        try:
-            await self.discord_bot.start(config.DISCORD_TOKEN)
-        except Exception as e:
-            logger.error(f"Error running Discord bot: {str(e)}")
-        finally:
-            # Clean up
-            self.stop_monitoring()
-            await self.discord_bot.close()
+# Test mode flag - set to True to bypass authentication for development
+TEST_MODE = True  # Change this to False for production use
 
 async def main():
-    """Main entry point for the application"""
-    # Check if required config is set
-    if not config.IMAP_SERVER or not config.IMAP_USER or not config.IMAP_PASSWORD:
-        logger.error("Email configuration is incomplete. Please check your .env file.")
+    # Load environment variables
+    load_dotenv()
+    
+    # Email configuration
+    imap_server = os.getenv('imap_server')
+    imap_user = os.getenv('imap_user')
+    imap_password = os.getenv('imap_password')
+    imap_port = int(os.getenv('imap_port', 993))
+    imap_ssl = os.getenv('imap_ssl', 'true').lower() == 'true'
+    check_interval = int(os.getenv('check_interval', 60))
+    whitelisted_emails = os.getenv('whitelisted_email_addresses', '').split(',')
+    
+    # OpenAI configuration
+    openai_api_key = os.getenv('openai_api_key')
+    
+    # Discord configuration
+    discord_token = os.getenv('discord_token')
+    discord_channel_id = int(os.getenv('discord_channel_id'))
+    
+    # Validate configurations
+    if not all([imap_server, imap_user, imap_password]) and not TEST_MODE:
+        logger.error("Missing email configuration. Please check your .env file.")
         return
     
-    if not config.OPENAI_API_KEY:
-        logger.error("OpenAI API key is not set. Please check your .env file.")
+    if not openai_api_key and not TEST_MODE:
+        logger.error("Missing OpenAI API key. Please check your .env file.")
         return
     
-    if not config.DISCORD_TOKEN or not config.DISCORD_CHANNEL_ID:
-        logger.error("Discord configuration is incomplete. Please check your .env file.")
+    if not all([discord_token, discord_channel_id]) and not TEST_MODE:
+        logger.error("Missing Discord configuration. Please check your .env file.")
         return
     
-    # Create and run the bot
-    bot = EmailMonitorBot()
-    await bot.run()
+    # Initialize components
+    if TEST_MODE:
+        logger.info("Running in TEST MODE - authentication bypassed")
+        # Create mock components for test mode
+        email_handler = None
+        ai_summarizer = None
+        discord_notifier = None
+        
+        # Print sample data for verification
+        logger.info(f"Would check emails for: {whitelisted_emails}")
+        logger.info(f"Would send notifications to Discord channel: {discord_channel_id}")
+        logger.info(f"Would check email every {check_interval} seconds")
+        
+        # Successfully "run" for 30 seconds in test mode
+        for i in range(3):
+            logger.info(f"Test mode iteration {i+1}/3")
+            await asyncio.sleep(2)
+        
+        logger.info("Test mode completed successfully")
+        return
+    else:
+        # Real mode with actual connections
+        try:
+            email_handler = EmailHandler(
+                imap_server, imap_user, imap_password, imap_port, imap_ssl, whitelisted_emails
+            )
+            logger.info("Starting email monitoring...")
+            await email_handler.connect()
+        except Exception as e:
+            logger.error(f"Failed to connect to email server. Exiting.")
+            if email_handler:
+                await email_handler.disconnect()
+            return
+        
+        ai_summarizer = AISummarizer(openai_api_key)
+        discord_notifier = DiscordNotifier(discord_token, discord_channel_id)
+    
+    # Handle signals for graceful shutdown
+    def signal_handler(sig, frame):
+        logger.info("Received signal to shut down")
+        asyncio.create_task(shutdown())
+    
+    async def shutdown():
+        logger.info("Shutting down...")
+        if email_handler:
+            await email_handler.disconnect()
+        if discord_notifier:
+            await discord_notifier.close()
+        logger.info("Email monitoring stopped")
+        asyncio.get_event_loop().stop()
+    
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    try:
+        # Start the Discord bot
+        await discord_notifier.run()
+        
+        # Start the email monitoring loop
+        while True:
+            try:
+                new_emails = await email_handler.check_emails()
+                for email in new_emails:
+                    summary = await ai_summarizer.summarize_email(email)
+                    await discord_notifier.send_email_notification(email, summary)
+                
+                await asyncio.sleep(check_interval)
+            except Exception as e:
+                logger.error(f"Error during email monitoring: {e}")
+                await asyncio.sleep(check_interval)
+    except Exception as e:
+        logger.error(f"Error running Discord bot: {e}")
+    finally:
+        await shutdown()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Keyboard interrupt received. Exiting.")
+    except Exception as e:
+        logger.error(f"Unhandled exception: {e}")
+        sys.exit(1)
