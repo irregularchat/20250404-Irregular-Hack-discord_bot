@@ -48,15 +48,15 @@ class AISummarizer:
             
             # Log email details before summarization
             body_preview = body[:100] + "..." if len(body) > 100 else body
-            logger.debug(f"Summarizing email: From={sender}, Subject={subject}, Body preview: {body_preview}")
-            logger.debug(f"Body length: {len(body)} characters")
+            logger.info(f"Summarizing email: From={sender}, Subject={subject}, Body preview: {body_preview}")
+            logger.info(f"Body length: {len(body)} characters")
             
             # Truncate body if it's too long (OpenAI has token limits)
             max_body_length = 4000
             truncated_body = body[:max_body_length] + "..." if len(body) > max_body_length else body
             truncated = len(body) > max_body_length
             if truncated:
-                logger.debug(f"Body was truncated from {len(body)} to {max_body_length} characters")
+                logger.info(f"Body was truncated from {len(body)} to {max_body_length} characters")
             
             # Create improved messages for OpenAI Chat API with emphasis on content analysis
             messages = [
@@ -95,7 +95,7 @@ class AISummarizer:
             ]
             
             # Call OpenAI API with newer model
-            logger.debug("Sending request to OpenAI API")
+            logger.info("Sending request to OpenAI API")
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=messages,
@@ -119,9 +119,9 @@ class AISummarizer:
             word_count = len(words)
             avg_word_length = sum(len(word) for word in words) / max(1, word_count)
             
-            logger.debug(f"Summary stats: {word_count} words, {summary_length} chars, {avg_word_length:.1f} avg word length")
-            logger.debug(f"Summary quality indicators: {'action item' in summary.lower()=}, {'deadline' in summary.lower()=}")
-            logger.debug(f"Summary content: {summary}")
+            logger.info(f"Summary stats: {word_count} words, {summary_length} chars, {avg_word_length:.1f} avg word length")
+            logger.info(f"Summary quality indicators: {'action item' in summary.lower()=}, {'deadline' in summary.lower()=}")
+            logger.info(f"Summary content: {summary}")
             
             # Check if summary seems too generic
             generic_phrases = ['email contains', 'the email is about', 'this email discusses']

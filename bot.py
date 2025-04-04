@@ -17,13 +17,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Enable debug logging if specified
-DEBUG_LOGGING = True  # Enable debug logging for testing email body processing
+DEBUG_LOGGING = False  # Enable debug logging for testing email body processing
 if DEBUG_LOGGING:
     logging.getLogger().setLevel(logging.DEBUG)
     logger.debug("Debug logging enabled")
 
 # Test mode flag - set to True for development/testing
-TEST_MODE = True  # Change this to True for development/testing
+TEST_MODE = False  # Change this to True for development/testing
 
 class EmailMonitorBot:
     """
