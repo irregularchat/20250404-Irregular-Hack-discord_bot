@@ -17,7 +17,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Test mode flag - set to True to bypass authentication for development
-TEST_MODE = True  # Change this to True for development/testing
+TEST_MODE = False  # Change this to True for development/testing
 
 class EmailMonitorBot:
     """
