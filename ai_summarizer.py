@@ -60,20 +60,23 @@ class AISummarizer:
             
             # Create improved messages for OpenAI Chat API with emphasis on content analysis
             messages = [
-                {"role": "system", "content": """You are an expert email analyst who helps people by creating concise and informative email summaries.
-                Your summaries should:
-                1. Carefully analyze the BODY content of the email - this is the most important part
-                2. Highlight the key points and main message from the email body
-                3. Identify any action items or requests mentioned in the text
-                4. Note any deadlines or important dates mentioned
-                5. Include relevant details from attachments or links if mentioned
-                6. Be clear and professional in tone
-                7. Be 3-5 sentences in length
+                {"role": "system", "content": """You are an expert email analyst who creates precise, actionable summaries.
                 
-                Do not simply restate the subject line - the body content is what matters most.
+                SUMMARY GUIDELINES:
+                1. Analyze the BODY content thoroughly - extract meaning, not just keywords
+                2. Identify the primary purpose of the email (information, request, update, etc.)
+                3. Extract concrete action items with their deadlines or urgency level
+                4. Highlight key facts, figures, and crucial details that require attention
+                5. Note contextual elements like project references, stakeholder mentions, or background information
+                6. If attachments/links are mentioned, highlight what they contain or their importance
+                7. Structure your summary logically with the most important information first
+                8. Be concise but thorough - 3-5 sentences optimally
+                
+                CRITICAL: Prioritize SUBSTANCE over FORM. Focus on what matters in the email content, not superficial elements.
+                Avoid restating the subject line as your summary - analyze the actual message content.
                 """},
                 {"role": "user", "content": f"""
-                Summarize the following email by analyzing its BODY content:
+                Analyze and summarize this email, focusing on extracting the valuable content from the BODY:
                 
                 FROM: {sender}
                 SUBJECT: {subject}
@@ -81,16 +84,22 @@ class AISummarizer:
                 BODY:
                 {truncated_body}
                 
-                Create a clear, concise summary that focuses on the content of the email body, including any key information, action items, and important details.
+                Create a comprehensive summary that extracts:
+                - The main purpose/message
+                - Any specific action items and deadlines
+                - Key details, facts or figures
+                - Important context or background information
+                
+                Your summary should be concise but capture all essential information from the email body.
                 """}
             ]
             
             # Call OpenAI API with newer model
             logger.debug("Sending request to OpenAI API")
             response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 messages=messages,
-                max_tokens=150,
+                max_tokens=550,
                 temperature=0.3,
                 top_p=1.0,
                 frequency_penalty=0.0,
@@ -103,8 +112,21 @@ class AISummarizer:
             # Add summary to email data
             email_data['summary'] = summary
             logger.info(f"Successfully generated summary for email: {subject}")
-            logger.debug(f"Summary length: {len(summary)} characters")
+            
+            # Enhanced logging for summary quality assessment
+            summary_length = len(summary)
+            words = summary.split()
+            word_count = len(words)
+            avg_word_length = sum(len(word) for word in words) / max(1, word_count)
+            
+            logger.debug(f"Summary stats: {word_count} words, {summary_length} chars, {avg_word_length:.1f} avg word length")
+            logger.debug(f"Summary quality indicators: {'action item' in summary.lower()=}, {'deadline' in summary.lower()=}")
             logger.debug(f"Summary content: {summary}")
+            
+            # Check if summary seems too generic
+            generic_phrases = ['email contains', 'the email is about', 'this email discusses']
+            if any(phrase in summary.lower() for phrase in generic_phrases):
+                logger.warning(f"Summary may be too generic for email: {subject}")
             
             return email_data
             
@@ -136,9 +158,33 @@ def summarize_email(email_data):
         # Extract email information
         subject = email_data.get('subject', 'No Subject')
         sender = email_data.get('from', 'Unknown Sender')
+        body = email_data.get('body', '')
         
-        # Create a basic summary without using OpenAI
-        email_data['summary'] = f"Email from {sender} regarding {subject}."
+        # Create a better-quality fallback summary with basic NLP-like extraction
+        if body:
+            # Extract first sentence as a potential summary starter
+            first_sentence = body.split('.')[0].strip() if '.' in body else body[:50].strip()
+            
+            # Look for potential action items
+            action_keywords = ["please", "request", "need", "required", "urgent", "important", "deadline", "by tomorrow", "by next", "attached"]
+            action_items = []
+            for keyword in action_keywords:
+                if keyword.lower() in body.lower():
+                    # Get the sentence containing the keyword
+                    sentences = body.replace('\n', ' ').split('.')
+                    for sentence in sentences:
+                        if keyword.lower() in sentence.lower():
+                            action_items.append(sentence.strip())
+                            break
+            
+            # Create a more informative fallback summary
+            if action_items:
+                action_summary = " Action item: " + action_items[0] + "." if action_items else ""
+                email_data['summary'] = f"Email from {sender} regarding {subject}. {first_sentence[:100]}...{action_summary}"
+            else:
+                email_data['summary'] = f"Email from {sender} regarding {subject}. {first_sentence[:150]}..."
+        else:
+            email_data['summary'] = f"Email from {sender} with subject '{subject}' (no content)."
         
         # Attempt to use async method only if we're not already in an event loop
         import asyncio
