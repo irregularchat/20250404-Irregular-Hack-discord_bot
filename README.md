@@ -20,8 +20,8 @@ A Discord bot that monitors an email inbox, uses AI to summarize email content, 
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/email-monitor-discord-bot.git
-cd email-monitor-discord-bot
+git clone https://github.com/irregularchat/20250404-Irregular-Hack-discord_bot
+cd 20250404-Irregular-Hack-discord_bot
 ```
 
 2. Install dependencies:
