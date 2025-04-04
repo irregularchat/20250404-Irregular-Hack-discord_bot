@@ -147,3 +147,11 @@ __pycache__/
 *.pyw
 *.pyz
 *.pywz
+.env
+tests/__pycache__/
+tests/*.pyc
+tests/*.pyo
+tests/*.pyd
+tests/*.pyw
+tests/*.pyz
+tests/*.pywz

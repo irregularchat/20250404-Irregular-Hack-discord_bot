@@ -18,7 +18,8 @@ DISCORD_TOKEN = os.getenv('discord_token')
 DISCORD_CHANNEL_ID = int(os.getenv('discord_channel_id')) if os.getenv('discord_channel_id') else None
 
 # Email filtering
-WHITELISTED_EMAIL_ADDRESSES = os.getenv('whitelisted_email_addresses', '').split(',') if os.getenv('whitelisted_email_addresses') else []
+# Parse whitelist and strip whitespace from each address
+WHITELISTED_EMAIL_ADDRESSES = [email.strip() for email in os.getenv('whitelisted_email_addresses', '').split(',')] if os.getenv('whitelisted_email_addresses') else []
 
 # Bot configuration
 CHECK_INTERVAL = 300  # Check for new emails every 5 minutes by default
