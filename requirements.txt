@@ -1,0 +1,7 @@
+discord.py
+imapclient
+email
+openai
+python-dotenv
+python-decouple
+python-decouple
