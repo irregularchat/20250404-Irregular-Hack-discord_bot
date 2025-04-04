@@ -31,20 +31,26 @@ pip install -r requirements.txt
 
 ## Configuration
 
-1. Create a `.env` file in the project root with the following variables:
+1. Copy the example environment file to create your configuration:
+```bash
+cp .env.example .env
+```
+
+2. Edit the `.env` file with your actual credentials:
 
 ```
 imap_server=your_imap_server.com
 imap_user=your_email@example.com
 imap_password=your_email_password
 imap_port=993
+imap_ssl=true
 openai_api_key=your_openai_api_key
 discord_token=your_discord_bot_token
-discord_public_key=your_discord_public_key
 discord_channel_id=your_discord_channel_id
-discord_bot_id=your_discord_bot_id
 whitelisted_email_addresses=email1@example.com,email2@example.com
 ```
+
+> **Important**: Never commit your `.env` file with real credentials to version control. The `.env` file is already added to `.gitignore` to prevent accidental commits.
 
 ### Setting Up Discord Bot
 
