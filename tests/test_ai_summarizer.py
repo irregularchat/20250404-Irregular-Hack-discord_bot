@@ -212,15 +212,16 @@ class TestAISummarizer(unittest.TestCase):
         # Check system message has the improved instructions
         system_message = call_args['messages'][0]['content']
         self.assertIn("expert email analyst", system_message)
+        self.assertIn("analyze the BODY content", system_message)
         self.assertIn("action items", system_message)
         self.assertIn("deadlines", system_message)
         
-        # Check user message has the proper format
+        # Check user message has the proper format with body content emphasis
         user_message = call_args['messages'][1]['content']
         self.assertIn("FROM:", user_message)
         self.assertIn("SUBJECT:", user_message)
         self.assertIn("BODY:", user_message)
-        self.assertIn("captures the main points", user_message)
+        self.assertIn("analyzing its BODY content", user_message)
         
         # Verify the summary includes action items and deadlines from the mock
         self.assertEqual(result['summary'], mock_response.choices[0].message.content)
