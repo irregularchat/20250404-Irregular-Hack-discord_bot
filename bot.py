@@ -76,6 +76,7 @@ class EmailMonitorBot:
             
             for email in emails:
                 try:
+<<<<<<< Updated upstream
                     # Process email with the module-level summarize_email function
                     # This is what's expected in tests
                     summarized_email = summarize_email(email)
@@ -85,10 +86,19 @@ class EmailMonitorBot:
                         await self.discord_bot.send_email_notification(summarized_email)
                         logger.info(f"Email sent to Discord channel: {config.DISCORD_CHANNEL_ID}")
                     else:
+=======
+                    # In test mode, use the module-level summarize_email function (non-async)
+                    if TEST_MODE:
+                        summarized_email = summarize_email(email)
+>>>>>>> Stashed changes
                         logger.info(f"Email from: {email.get('from', 'Unknown')}")
                         logger.info(f"Subject: {email.get('subject', 'No subject')}")
                         summary = summarized_email.get('summary', 'No summary available')
                         logger.info(f"Summary: {summary}")
+                    else:
+                        # In production mode, use the async AI summarizer
+                        summarized_email = await self.ai_summarizer.summarize_email(email)
+                        await self.discord_bot.send_email_notification(summarized_email)
                         
                     # Sleep between processing emails as expected in tests
                     await asyncio.sleep(1)
@@ -147,7 +157,6 @@ class EmailMonitorBot:
             logger.error("Missing OpenAI API key. Please check your .env file.")
             return
         
-        # In test mode, we don't need Discord configuration
         if not TEST_MODE and not all([config.DISCORD_TOKEN, config.DISCORD_CHANNEL_ID]):
             logger.error("Missing Discord configuration. Please check your .env file.")
             return
@@ -158,8 +167,7 @@ class EmailMonitorBot:
             logger.info(f"IMAP Server: {config.IMAP_SERVER}")
             logger.info(f"IMAP User: {config.IMAP_USER}")
             logger.info(f"OpenAI API Key: {config.OPENAI_API_KEY[:5]}...{config.OPENAI_API_KEY[-5:]} (truncated)")
-            if config.DISCORD_CHANNEL_ID:
-                logger.info(f"Discord Channel ID: {config.DISCORD_CHANNEL_ID}")
+            logger.info(f"Discord Channel ID: {config.DISCORD_CHANNEL_ID}")
             logger.info(f"Whitelisted Emails: {config.WHITELISTED_EMAIL_ADDRESSES}")
             
             # In test mode, just run the monitoring task directly
@@ -196,8 +204,8 @@ async def main():
         logger.error("Missing OpenAI API key. Please check your .env file.")
         return
 
-    # Check for missing Discord configuration
-    if not all([config.DISCORD_TOKEN, config.DISCORD_CHANNEL_ID]):
+    # Only check Discord configuration in production mode
+    if not TEST_MODE and not all([config.DISCORD_TOKEN, config.DISCORD_CHANNEL_ID]):
         logger.error("Missing Discord configuration. Please check your .env file.")
         return
     
