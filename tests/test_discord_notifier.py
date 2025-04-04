@@ -8,6 +8,8 @@ import asyncio
 # Add parent directory to path to import modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Mock the EmailMonitorBot before importing to prevent coroutine warning
+sys.modules['bot'] = MagicMock()
 from discord_notifier import DiscordNotifier
 
 class TestDiscordNotifier(unittest.TestCase):
@@ -64,7 +66,7 @@ class TestDiscordNotifier(unittest.TestCase):
             mock_user = MagicMock(name="TestBot", id="12345")
             notifier._connection = MagicMock()
             notifier._connection.user = mock_user
-            notifier.guilds = ["guild1", "guild2"]
+            notifier.__dict__['guilds'] = ["guild1", "guild2"]
             
             # Run on_ready method
             loop.run_until_complete(notifier.on_ready())
@@ -95,7 +97,7 @@ class TestDiscordNotifier(unittest.TestCase):
             mock_user = MagicMock(name="TestBot", id="12345")
             notifier._connection = MagicMock()
             notifier._connection.user = mock_user
-            notifier.guilds = ["guild1"]
+            notifier.__dict__['guilds'] = ["guild1"]
             
             # Run on_ready method
             loop.run_until_complete(notifier.on_ready())
