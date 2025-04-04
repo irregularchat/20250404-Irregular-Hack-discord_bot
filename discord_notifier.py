@@ -2,6 +2,7 @@ import discord
 import logging
 import config
 from discord.ext import commands, tasks
+import re
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -73,7 +74,34 @@ class DiscordNotifier(commands.Bot):
             
             # Add summary if available - this is the AI-generated content analysis
             if summary:
-                embed.add_field(name="📝 Content Analysis", value=summary, inline=False)
+                # Format the summary to highlight action items and important information
+                formatted_summary = summary
+                
+                # Highlight action items with bold formatting
+                action_indicators = ["action item", "please", "requested", "need to", "should", "must", "required", "by tomorrow", "by next", "deadline"]
+                for indicator in action_indicators:
+                    if indicator in formatted_summary.lower():
+                        # Split by periods to get sentences
+                        sentences = formatted_summary.split('.')
+                        for i, sentence in enumerate(sentences):
+                            if indicator in sentence.lower():
+                                # Bold the action item sentences
+                                sentences[i] = f"**{sentence.strip()}**"
+                        formatted_summary = '. '.join(sentences)
+                        break
+                
+                # Highlight dates with underline
+                date_pattern = r'\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?\b|\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)(?:,?\s+\d{4})?\b|\b(?:tomorrow|next week|next month)\b'
+                dates = re.findall(date_pattern, formatted_summary, re.IGNORECASE)
+                for date in dates:
+                    formatted_summary = formatted_summary.replace(date, f"__*{date}*__")
+                
+                # Add section header and formatted summary
+                embed.add_field(
+                    name="📝 Content Analysis", 
+                    value=f"{formatted_summary}\n\n*AI-generated summary*", 
+                    inline=False
+                )
             
             # Add a snippet of the body
             if body:
