@@ -87,20 +87,41 @@ python bot.py
 Start the bot using Docker Compose:
 
 ```bash
+# Build and start in foreground (see logs in real-time)
+docker-compose up
+
+# Build and start in background (detached mode)
 docker-compose up -d
 ```
 
-To view logs:
+To view logs when running in detached mode:
 
 ```bash
+# View all logs
 docker-compose logs -f
+
+# View only the last 100 lines
+docker-compose logs -f --tail=100
 ```
 
 To stop the bot:
 
 ```bash
+# If running in foreground, press Ctrl+C
+# If running in background
 docker-compose down
 ```
+
+To rebuild the container after making changes:
+
+```bash
+docker-compose build
+docker-compose up -d
+```
+
+### Docker Volume
+
+The bot uses a Docker volume to persist logs. You can access these logs at any time, even after restarting the container.
 
 The bot will:
 1. Connect to your email server via IMAP
