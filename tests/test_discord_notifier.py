@@ -60,9 +60,11 @@ class TestDiscordNotifier(unittest.TestCase):
             # Create instance and setup attributes
             notifier = DiscordNotifier()
             
-            # Use __dict__ to directly set attributes instead of using property setters
-            notifier.__dict__['user'] = MagicMock(name="TestBot", id="12345")
-            notifier.__dict__['guilds'] = ["guild1", "guild2"]
+            # Mock the connection and user attributes
+            mock_user = MagicMock(name="TestBot", id="12345")
+            notifier._connection = MagicMock()
+            notifier._connection.user = mock_user
+            notifier.guilds = ["guild1", "guild2"]
             
             # Run on_ready method
             loop.run_until_complete(notifier.on_ready())
@@ -89,9 +91,11 @@ class TestDiscordNotifier(unittest.TestCase):
             # Create instance and setup attributes
             notifier = DiscordNotifier()
             
-            # Use __dict__ to directly set attributes instead of using property setters
-            notifier.__dict__['user'] = MagicMock(name="TestBot", id="12345")
-            notifier.__dict__['guilds'] = ["guild1"]
+            # Mock the connection and user attributes
+            mock_user = MagicMock(name="TestBot", id="12345")
+            notifier._connection = MagicMock()
+            notifier._connection.user = mock_user
+            notifier.guilds = ["guild1"]
             
             # Run on_ready method
             loop.run_until_complete(notifier.on_ready())
