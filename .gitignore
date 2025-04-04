@@ -24,6 +24,7 @@ wheels/
 .installed.cfg
 *.egg
 .env
+<<<<<<< HEAD
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -133,3 +134,10 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+=======
+.env
+/env
+/tests
+tests/
+env/
+>>>>>>> fcab716 (Update .gitignore to include additional environment and test directories)
