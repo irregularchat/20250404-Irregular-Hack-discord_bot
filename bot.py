@@ -17,7 +17,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Test mode flag - set to True to bypass authentication for development
-TEST_MODE = False  # Change this to True for development/testing
+TEST_MODE = True  # Change this to True for development/testing
 
 class EmailMonitorBot:
     """
@@ -146,7 +146,8 @@ class EmailMonitorBot:
             logger.error("Missing OpenAI API key. Please check your .env file.")
             return
         
-        if not all([config.DISCORD_TOKEN, config.DISCORD_CHANNEL_ID]):
+        # In test mode, we don't need Discord configuration
+        if not TEST_MODE and not all([config.DISCORD_TOKEN, config.DISCORD_CHANNEL_ID]):
             logger.error("Missing Discord configuration. Please check your .env file.")
             return
             
@@ -156,7 +157,8 @@ class EmailMonitorBot:
             logger.info(f"IMAP Server: {config.IMAP_SERVER}")
             logger.info(f"IMAP User: {config.IMAP_USER}")
             logger.info(f"OpenAI API Key: {config.OPENAI_API_KEY[:5]}...{config.OPENAI_API_KEY[-5:]} (truncated)")
-            logger.info(f"Discord Channel ID: {config.DISCORD_CHANNEL_ID}")
+            if config.DISCORD_CHANNEL_ID:
+                logger.info(f"Discord Channel ID: {config.DISCORD_CHANNEL_ID}")
             logger.info(f"Whitelisted Emails: {config.WHITELISTED_EMAIL_ADDRESSES}")
             
             # In test mode, just run the monitoring task directly
