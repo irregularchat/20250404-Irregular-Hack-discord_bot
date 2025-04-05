@@ -1,13 +1,9 @@
 import openai
-import logging
 import config
 from openai import OpenAI
+from logger import get_logger
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AISummarizer:

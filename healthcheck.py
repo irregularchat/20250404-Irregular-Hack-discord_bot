@@ -5,11 +5,9 @@ Simple health check script for the Discord bot
 import os
 import sys
 import psutil
-import logging
+from logger import get_logger
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger("healthcheck")
+logger = get_logger(__name__)
 
 def is_bot_running():
     """Check if the bot process is running"""

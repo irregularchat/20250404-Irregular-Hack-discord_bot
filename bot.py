@@ -8,17 +8,14 @@ from email_handler import EmailHandler
 from discord_notifier import DiscordNotifier
 from ai_summarizer import AISummarizer, summarize_email
 import config
+from logger import get_logger
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Enable debug logging if specified
 DEBUG_LOGGING = False  # Enable debug logging for testing email body processing
 if DEBUG_LOGGING:
-    logging.getLogger().setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
     logger.debug("Debug logging enabled")
 
 # Test mode flag - set to True for development/testing
@@ -67,11 +64,14 @@ class EmailMonitorBot:
         # Set running state
         self.running = False
 
+        # Initialize email monitoring task
+        self.email_monitoring_task = None
+
         # Set up Discord bot event handlers
         @self.discord_bot.event
         async def on_ready():
             """Called when the Discord bot is ready"""
-            logger.info(f"Bot is running!")
+            logger.info("Bot is running!")
             # Start email monitoring when Discord bot is ready
             self.email_monitoring_task = self.discord_bot.loop.create_task(
                 self.start_monitoring()

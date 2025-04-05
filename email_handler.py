@@ -2,15 +2,12 @@ import email
 from email.header import decode_header
 import imaplib
 from imapclient import IMAPClient
-import logging
 from datetime import datetime, timedelta
 import config
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class EmailHandler:
