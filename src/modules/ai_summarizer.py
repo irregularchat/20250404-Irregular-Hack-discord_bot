@@ -1,8 +1,8 @@
 import openai
-import config
 import logging
 from openai import OpenAI
-from logger import get_logger
+from src.utils import config
+from src.utils.logger import get_logger
 
 logger = get_logger(
     __name__,

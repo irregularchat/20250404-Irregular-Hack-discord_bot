@@ -1,9 +1,9 @@
 import asyncio
 import logging
 import sys
-import config
-from logger import get_logger
-from email_monitor_bot import EmailMonitorBot
+from src.utils import config
+from src.utils.logger import get_logger
+from src.email_monitor_bot import EmailMonitorBot
 
 # Get logger with configuration from config
 logger = get_logger(

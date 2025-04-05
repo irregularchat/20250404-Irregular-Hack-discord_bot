@@ -1,9 +1,8 @@
 import discord
-import config
-from discord.ext import commands, tasks
 import re
-
-from logger import get_logger
+from discord.ext import commands, tasks
+from src.utils import config
+from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

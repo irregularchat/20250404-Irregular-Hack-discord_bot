@@ -2,11 +2,11 @@ import asyncio
 import logging
 import os
 from dotenv import load_dotenv
-from email_handler import EmailHandler
-from discord_notifier import DiscordNotifier
-from ai_summarizer import AISummarizer, summarize_email
-import config
-from logger import get_logger
+from src.modules.email_handler import EmailHandler
+from src.modules.discord_notifier import DiscordNotifier
+from src.modules.ai_summarizer import AISummarizer, summarize_email
+from src.utils import config
+from src.utils.logger import get_logger
 
 # Get logger with configuration from config
 logger = get_logger(
