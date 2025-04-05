@@ -1,13 +1,19 @@
 import email
+import logging
 from email.header import decode_header
-import imaplib
 from imapclient import IMAPClient
 from datetime import datetime, timedelta
 import config
 
 from logger import get_logger
 
-logger = get_logger(__name__)
+logger = get_logger(
+    __name__,
+    level=getattr(logging, config.LOG_LEVEL, logging.INFO),
+    concise=config.LOG_CONCISE,
+    file=config.LOG_TO_FILE,
+    log_file=config.LOG_FILE,
+)
 
 
 class EmailHandler:

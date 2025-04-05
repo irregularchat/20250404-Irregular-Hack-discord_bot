@@ -34,3 +34,6 @@ else:
 LOG_DIR = os.getenv('log_dir', 'logs')
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, 'discord_bot.log')
+LOG_LEVEL = os.getenv('log_level', 'INFO').upper()
+LOG_CONCISE = os.getenv('log_concise', 'true').lower() == 'true'
+LOG_TO_FILE = os.getenv('log_to_file', 'false').lower() == 'true'

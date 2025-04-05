@@ -21,12 +21,14 @@ A Discord bot that monitors an email inbox, uses AI to summarize email content, 
 ### Option 1: Standard Installation
 
 1. Clone this repository:
+
 ```bash
 git clone https://github.com/irregularchat/20250404-Irregular-Hack-discord_bot
 cd 20250404-Irregular-Hack-discord_bot
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -34,6 +36,7 @@ pip install -r requirements.txt
 ### Option 2: Docker Installation
 
 1. Clone this repository:
+
 ```bash
 git clone https://github.com/irregularchat/20250404-Irregular-Hack-discord_bot
 cd 20250404-Irregular-Hack-discord_bot
@@ -44,6 +47,7 @@ cd 20250404-Irregular-Hack-discord_bot
 ## Configuration
 
 1. Copy the example environment file to create your configuration:
+
 ```bash
 cp .env.example .env
 ```
@@ -124,6 +128,7 @@ docker-compose up -d
 The bot uses a Docker volume to persist logs. You can access these logs at any time, even after restarting the container.
 
 The bot will:
+
 1. Connect to your email server via IMAP
 2. Check for new emails at regular intervals
 3. Generate AI summaries for new email content
@@ -132,6 +137,7 @@ The bot will:
 ## Customization
 
 You can modify the following aspects:
+
 - Check frequency in the bot configuration
 - Email filter criteria
 - Discord message format
