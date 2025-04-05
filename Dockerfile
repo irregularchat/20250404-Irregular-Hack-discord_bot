@@ -14,4 +14,4 @@ RUN useradd -m appuser
 USER appuser
 
 # Run the bot
-CMD ["python", "bot.py"] 
+CMD ["python", "run.py"] 
