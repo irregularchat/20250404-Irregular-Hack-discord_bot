@@ -145,4 +145,4 @@ You can modify the following aspects:
 
 ## License
 
-[Your preferred license]
+This project is licensed under the [MIT License](LICENSE).
