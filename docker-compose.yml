@@ -7,13 +7,29 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    env_file:
-      - .env
     volumes:
       - ./:/app
       - bot-logs:/app/logs
     environment:
       - TZ=UTC
+      # Email server configuration
+      - imap_server
+      - imap_user
+      - imap_password
+      - imap_port
+      - imap_ssl
+      # OpenAI API key for email summarization
+      - openai_api_key
+      # Discord bot configuration
+      - discord_token
+      - discord_channel_id
+      # Comma-separated list of whitelisted email addresses to monitor
+      - whitelisted_email_addresses
+      # Logging configuration
+      - log_level
+      - log_concise
+      - log_to_file
+      - log_dir
     healthcheck:
       test: ["CMD", "python", "./src/utils/healthcheck.py"]
       interval: 30s

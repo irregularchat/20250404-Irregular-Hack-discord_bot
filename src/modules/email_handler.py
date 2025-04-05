@@ -78,15 +78,16 @@ class EmailHandler:
                     from_address = self._decode_email_header(email_message["From"])
                     date = email_message["Date"]
 
-                    # Check if email is from a whitelisted address
-                    if config.WHITELISTED_EMAIL_ADDRESSES and not any(
-                        addr in from_address
-                        for addr in config.WHITELISTED_EMAIL_ADDRESSES
-                    ):
-                        logger.info(
-                            f"Skipping email from non-whitelisted address: {from_address}"
-                        )
-                        continue
+                    # Check if email is from a whitelisted address (if whitelist is enabled)
+                    if config.WHITELISTED_EMAIL_ADDRESSES:
+                        if not any(
+                            addr in from_address
+                            for addr in config.WHITELISTED_EMAIL_ADDRESSES
+                        ):
+                            logger.info(
+                                f"Skipping email from non-whitelisted address: {from_address}"
+                            )
+                            continue
 
                     # Extract email body
                     body = self._get_email_body(email_message)

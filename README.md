@@ -46,6 +46,8 @@ cd 20250404-Irregular-Hack-discord_bot
 
 ## Configuration
 
+### Option 1: Using .env file (for standard installation)
+
 1. Copy the example environment file to create your configuration:
 
 ```bash
@@ -68,6 +70,33 @@ whitelisted_email_addresses=email1@example.com,email2@example.com
 
 > **Important**: Never commit your `.env` file with real credentials to version control. The `.env` file is already added to `.gitignore` to prevent accidental commits.
 
+### Option 2: Using Unraid Environment Variables (for Docker installation)
+
+When running the container in Unraid:
+
+1. In the Unraid Docker UI, click "Add Container"
+2. Find the container image or provide the repository URL
+3. In the "Advanced View" section, add the following environment variables with your actual values:
+
+| Variable Name | Example Value | Description |
+|---------------|---------------|-------------|
+| imap_server | imap.example.com | Your IMAP server address |
+| imap_user | your-email@example.com | Your email username |
+| imap_password | your-password-here | Your email password |
+| imap_port | 993 | IMAP port (usually 993 for SSL) |
+| imap_ssl | true | Whether to use SSL (true/false) |
+| openai_api_key | your-openai-api-key | Your OpenAI API key |
+| discord_token | your-discord-bot-token | Your Discord bot token |
+| discord_channel_id | your-discord-channel-id | Your Discord channel ID |
+| whitelisted_email_addresses | email1@example.com,email2@example.com | Comma-separated list of email addresses to monitor |
+| log_level | INFO | Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL) |
+| log_concise | true | Whether to use concise logging (true/false) |
+| log_to_file | false | Whether to log to file (true/false) |
+| log_dir | logs | Directory to store logs |
+
+4. Configure other container settings as needed (port mappings, volumes, etc.)
+5. Click "Apply" to create and start the container
+
 ### Setting Up Discord Bot
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
@@ -87,6 +116,8 @@ python bot.py
 ```
 
 ### Running with Docker
+
+#### Standard Docker Compose
 
 Start the bot using Docker Compose:
 
@@ -122,6 +153,14 @@ To rebuild the container after making changes:
 docker-compose build
 docker-compose up -d
 ```
+
+#### Running in Unraid
+
+1. In the Unraid Docker tab, click "Add Container"
+2. Search for the container or provide the repository URL
+3. Configure the environment variables as described in the Configuration section
+4. Set up the appropriate paths for volumes
+5. Apply the settings to start the container
 
 ### Docker Volume
 
